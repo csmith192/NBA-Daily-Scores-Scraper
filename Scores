@@ -1,0 +1,37 @@
+import requests
+from bs4 import BeautifulSoup as bs
+import re
+import pandas as pd
+
+#load webpage
+r = requests.get("https://www.basketball-reference.com/boxscores/202112030ATL.html")
+#convert to bs
+soup = bs(r.content,features="html.parser")
+
+#select game summary
+hawks_game_summary = soup.find_all("div",attrs={"id":"div_box-ATL-game-basic"})[0]
+#Make columns
+columns = hawks_game_summary.find("thead").select("th")
+column_names = [name.string for name in columns]
+print(column_names)
+del column_names[1:3]
+print(column_names)
+
+
+#Make Rows
+table_rows = hawks_game_summary.find("tbody").find_all("tr")
+l = []
+for tr in table_rows:
+    td = tr.find_all(['th','td'])
+    row = [str(tr.get_text()).strip() for tr in td]
+    l.append(row)
+
+#Putting it all together
+df_hawks = pd.DataFrame(l,columns=column_names)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+print(df_hawks)
+
+
+
+
